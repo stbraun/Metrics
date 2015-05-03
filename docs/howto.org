@@ -1,0 +1,198 @@
+#+SETUPFILE: ~/.emacs.d/setup.org
+
+#+TITLE: Software Analysis
+#+AUTHOR: Stefan Braun
+
+
+
+* How to analyze code
+
+** Gather data
+
+*** Version Control System
+
+#+BEGIN_SRC sh
+svn log -v --xml > logfile.log -r {YYYYmmDD}:HEAD
+git log --pretty=format:'[%h] %aN %ad %s' --date=short --numstat --after=YYYY-MM-DD
+#+END_SRC
+
+
+*** Surce code
+
+**** Lines of code
+
+Lines of code are a simple but effective measure to estimate complexity related to defect probability.
+
+#+BEGIN_SRC sh
+# Generate lines of code stats per file
+cloc ./ --by-file --csv --quiet --exclude-list-file=statistics/ignored_dirs.txt --report-file=statistics/maat_lines.csv
+#+END_SRC
+
+*** Task management
+
+** Prepare data
+
+*** maat
+
+Extract number of revisions per file. This gives us the change rate.
+
+#+BEGIN_SRC sh
+# Generate change frequency per file
+maat -c git -l git.log -a revisions > maat_freqs.csv
+#+END_SRC
+
+Change frequency and size of an module combined hint to hotspots.
+
+#+BEGIN_SRC sh
+# Merge loc and change frequency stats to detect hotspots
+python2 scripts/merge_comp_freqs.py maat_freqs.csv maat_lines.csv > maat_hotspot.csv
+#+END_SRC
+
+
+** Visualization
+
+*** Processing
+
+*** D3.js
+
+#+BEGIN_SRC sh
+# Convert data set to json to create D3 enclosure diagram.
+python2 scripts/csv_as_enclosure_json.py --structure maat_lines.csv --weights maat_freqs.csv --weightcolumn 1 > encl_compl.json
+#+END_SRC
+
+Provide an html file 'enclosure.html' for visualization of the enclosure diagram:
+
+#+BEGIN_SRC html -n
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  cursor: pointer;
+}
+
+.node:hover {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.node--root {
+  stroke: #777;
+  stroke-width: 2px;
+}
+
+.node--leaf {
+  fill: white;
+  stroke: #777;
+  stroke-width: 1px;
+}
+
+.label {
+  font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-anchor: middle;
+  fill: white;
+  //text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+}
+
+.label,
+.node--root,
+.node--leaf {
+  pointer-events: none;
+}
+
+</style>
+<body>
+<script src="d3/d3.min.js"></script>
+<script>
+
+var margin = 10,
+    outerDiameter = 960,
+    innerDiameter = outerDiameter - margin - margin;
+
+var x = d3.scale.linear()
+    .range([0, innerDiameter]);
+
+var y = d3.scale.linear()
+    .range([0, innerDiameter]);
+
+var color = d3.scale.linear()
+    .domain([-1, 5])
+    .range(["hsl(185,60%,99%)", "hsl(187,40%,70%)"])
+    .interpolate(d3.interpolateHcl);
+
+var pack = d3.layout.pack()
+    .padding(2)
+    .size([innerDiameter, innerDiameter])
+    .value(function(d) { return d.size; })
+
+var svg = d3.select("body").append("svg")
+    .attr("width", outerDiameter)
+    .attr("height", outerDiameter)
+  .append("g")
+    .attr("transform", "translate(" + margin + "," + margin + ")");
+
+d3.json("encl_compl.json", function(error, root) {
+  var focus = root,
+      nodes = pack.nodes(root);
+
+  svg.append("g").selectAll("circle")
+      .data(nodes)
+    .enter().append("circle")
+      .attr("class", function(d) { return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root"; })
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+      .attr("r", function(d) { return d.r; })
+      .style("fill", function(d) { return d.weight > 0.0 ? "darkred" :
+      d.children ? color(d.depth) : "WhiteSmoke"; })
+      .style("fill-opacity", function(d) { return d.weight; })
+      .on("click", function(d) { return zoom(focus == d ? root : d); });
+
+  svg.append("g").selectAll("text")
+      .data(nodes)
+    .enter().append("text")
+      .attr("class", "label")
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+      .style("fill-opacity", function(d) { return d.parent === root ? 1 : 0; })
+      .style("display", function(d) { return d.parent === root ? null : "none"; })
+      .text(function(d) { return d.name; });
+
+  d3.select(window)
+      .on("click", function() { zoom(root); });
+
+  function zoom(d, i) {
+    var focus0 = focus;
+    focus = d;
+
+    var k = innerDiameter / d.r / 2;
+    x.domain([d.x - d.r, d.x + d.r]);
+    y.domain([d.y - d.r, d.y + d.r]);
+    d3.event.stopPropagation();
+
+    var transition = d3.selectAll("text,circle").transition()
+        .duration(d3.event.altKey ? 7500 : 750)
+        .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+
+    transition.filter("circle")
+        .attr("r", function(d) { return k * d.r; });
+
+    transition.filter("text")
+      .filter(function(d) { return d.parent === focus || d.parent === focus0; })
+        .style("fill-opacity", function(d) { return d.parent === focus ? 1 : 0; })
+        .each("start", function(d) { if (d.parent === focus) this.style.display = "inline"; })
+        .each("end", function(d) { if (d.parent !== focus) this.style.display = "none"; });
+  }}
+);
+
+d3.select(self.frameElement).style("height", outerDiameter + "px");
+</script>
+#+END_SRC
+
+Copy *d3* folder into the folder holding the html and the json files. The json file must be named *encl_compl.json* or you need to patch the html file (search for 'json').
+
+Now start an HTTP server to make your diagram accessible.
+
+#+BEGIN_SRC sh
+python2 -m SimpleHTTPServer 8888
+#+END_SRC
+
+Start a browser and point it to http://localhost:8888/enclosure.html.
+

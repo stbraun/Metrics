@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="doc" pattern="file[Metrics]:docs/*" />
+</component>
