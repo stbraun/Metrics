@@ -27,4 +27,7 @@
   <component name="RunManager">
     <list size="0" />
   </component>
+  <component name="TaskProjectConfiguration">
+    <server type="YouTrack" url="http://stbraun.myjetbrains.com/youtrack" />
+  </component>
 </project>

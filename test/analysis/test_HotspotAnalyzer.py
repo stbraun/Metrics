@@ -22,6 +22,10 @@ import unittest
 
 from metrics.hotspot import HotspotAnalyzer, InvalidDataException
 
+INVALID_CSV = "test/analysis/data/invalidHotspot.csv"
+
+VALID_CSV = "test/analysis/data/hotspot.csv"
+
 
 class TestHotspotAnalyzer(unittest.TestCase):
     """Test cases for hot-spot analyzer."""
@@ -29,12 +33,16 @@ class TestHotspotAnalyzer(unittest.TestCase):
     def test_creating_invalid_data_format(self):
         """CSV file with missing required columns ."""
         with self.assertRaises(InvalidDataException):
-            HotspotAnalyzer("analysis/data/invalidHotspot.csv")
+            HotspotAnalyzer(INVALID_CSV)
 
     def test_creating_valid_data_format(self):
         """CSV file with missing required columns ."""
-        HotspotAnalyzer("analysis/data/hotspot.csv")
+        HotspotAnalyzer(VALID_CSV)
 
+    def test_number_of_records_read(self):
+        """Read data file with 14 records."""
+        hsa = HotspotAnalyzer(VALID_CSV)
+        self.assertEqual(14, len(hsa.dta.get_values()))
 
 if __name__ == '__main__':
     unittest.main()

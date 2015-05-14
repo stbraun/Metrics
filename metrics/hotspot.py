@@ -51,8 +51,6 @@ class HotspotAnalyzer(object):
 
     def __read_csv(self) -> pd.DataFrame:
         """Read csv file data.
-            Convert column headers and table names to upper case
-            supporting both Oracle and MSSql-Server.
 
             :return: data frame.
             :rtype: pd.DataFrame
@@ -67,7 +65,7 @@ class HotspotAnalyzer(object):
         if not self.expected_columns.issubset(self.dta.columns):
             raise InvalidDataException("Required columns missing: {}".format(self.expected_columns))
 
-    def plot_revisions_vs_code(self):
+    def plot_revisions_vs_lines_of_code(self):
         """Plot data."""
         fig = plt.figure(figsize=(15, 8))
         fig_line = fig.add_subplot(2, 1, 1)

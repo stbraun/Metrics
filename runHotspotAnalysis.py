@@ -30,7 +30,7 @@ def main(data_file):
     :param data_file: path to csv file.
     """
     hsa = HotspotAnalyzer(data_file)
-    hsa.plot_revisions_vs_code()
+    hsa.plot_revisions_vs_lines_of_code()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1]))
