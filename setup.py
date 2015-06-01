@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 
-version = '0.1.0dev1'
+version = '0.1.0'
 
 
 class PyTest(TestCommand):
@@ -29,7 +29,7 @@ setup(
     description='Simple code metrics',
     long_description=open("README.rst").read(),
     package_dir={'': '.'},
-    url='http://xx.yy.zzz', # TODO
+    url='https://github.com/stbraun/Metrics',
     license='MIT',
     keywords='development tools',  # Separate with spaces
     author='Stefan Braun',
