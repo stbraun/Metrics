@@ -33,4 +33,5 @@ def main(data_file):
     hsa.plot_revisions_vs_lines_of_code()
 
 if __name__ == '__main__':
+    # TODO proper argument handling required
     sys.exit(main(sys.argv[1]))

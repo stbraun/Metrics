@@ -11,4 +11,8 @@
   <component name="PyBDDFrameworkConfig">
     <option name="preferedFrameworkName" value="behave" />
   </component>
+  <component name="TestRunnerService">
+    <option name="projectConfiguration" value="Nosetests" />
+    <option name="PROJECT_TEST_RUNNER" value="Nosetests" />
+  </component>
 </module>
