@@ -18,6 +18,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import os.path
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -49,7 +50,7 @@ class HotspotAnalyzer(object):
         self.dta = self.__read_csv()
         self.__validate_data()
 
-    def __read_csv(self) -> pd.DataFrame:
+    def __read_csv(self):
         """Read csv file data.
 
             :return: data frame.
@@ -70,6 +71,11 @@ class HotspotAnalyzer(object):
         fig = plt.figure(figsize=(15, 8))
         fig_line = fig.add_subplot(2, 1, 1)
         cdf = self.dta
-        cdf.plot(kind='scatter', x='code', y='revisions', title='revisions over lines of code', color='b', ax=fig_line)
-        plt.show()
+        cdf.plot(kind='scatter', x='code', y='revisions',
+                 title='revisions over lines of code',
+                 color='b', ax=fig_line)
+        #plt.show()
+        # TODO provide method for plot and one for save
+        pth = os.path.join(os.path.dirname(self.path), 'loc_vs_revs.png')
+        plt.savefig(pth)
         plt.close()
