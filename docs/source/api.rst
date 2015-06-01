@@ -6,5 +6,9 @@ API Reference
 Metrics
 -------
 
-.. automodule:: metrics
-       :members:
+
+.. automodule:: runHotspotAnalysis
+    :members:
+
+.. automodule:: metrics.hotspot
+    :members:
